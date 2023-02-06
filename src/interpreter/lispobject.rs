@@ -28,9 +28,8 @@ impl LispObject {
     pub fn into_bytes(&self) -> Vec<u8> {
         match self {
             Self::Number(data) => {
-                const SIZE: u8 = std::mem::size_of::<f64>() as u8;
-                let mut vec = vec![NUMBER, SIZE];
-                vec.extend(data.to_le_bytes());
+                let mut vec = vec![NUMBER];
+                vec.extend(data.to_ne_bytes());
                 vec
             }
             Self::String(data) => {
@@ -38,7 +37,7 @@ impl LispObject {
                 let size = data.len() as SizeIdent;
                 let mut vec = vec![STRING];
                 assert!(data.len() <= SizeIdent::MAX as usize);
-                vec.extend_from_slice(&size.to_le_bytes());
+                vec.extend_from_slice(&size.to_ne_bytes());
                 vec.extend_from_slice(data);
                 vec
             }
@@ -47,7 +46,7 @@ impl LispObject {
                 let size = data.len() as SizeIdent;
                 assert!(data.len() <= SizeIdent::MAX as usize);
                 let mut vec = vec![SYMBOL];
-                vec.extend_from_slice(&size.to_le_bytes());
+                vec.extend_from_slice(&size.to_ne_bytes());
                 vec.extend_from_slice(data);
                 vec
             }
@@ -61,7 +60,7 @@ impl LispObject {
                 let mut vec = vec![LIST];
                 let size = data.len() as SizeIdent;
                 assert!(data.len() <= SizeIdent::MAX as usize);
-                vec.extend_from_slice(&size.to_le_bytes());
+                vec.extend_from_slice(&size.to_ne_bytes());
                 for entry in data {
                     vec.extend(entry.into_bytes());
                 }
@@ -97,4 +96,54 @@ impl LispObject {
             num => panic!("{num} is not a valid identifier."),
         }
     }
+}
+
+#[test]
+fn test_number_conversion() {
+    let obj = LispObject::Number(143.234);
+    let bytes = obj.into_bytes();
+    let reassembled = LispObject::build(&mut bytes.into_iter());
+    assert_eq!(reassembled, obj);
+}
+
+#[test]
+fn test_string_conversion() {
+    let obj = LispObject::String("Hello World!".to_string());
+    let bytes = obj.into_bytes();
+    let reassembled = LispObject::build(&mut bytes.into_iter());
+    assert_eq!(reassembled, obj);
+}
+
+#[test]
+fn test_symbol_conversion() {
+    let obj = LispObject::Symbol("do-something".to_string());
+    let bytes = obj.into_bytes();
+    let reassembled = LispObject::build(&mut bytes.into_iter());
+    assert_eq!(reassembled, obj);
+}
+
+#[test]
+fn test_cons_conversion() {
+    let obj = LispObject::Cons(Box::new((
+        LispObject::String("Hello World!".to_string()),
+        LispObject::Number(23.2),
+    )));
+    let bytes = obj.into_bytes();
+    let reassembled = LispObject::build(&mut bytes.into_iter());
+    assert_eq!(reassembled, obj);
+}
+
+#[test]
+fn test_list_conversion() {
+    let obj = LispObject::List(vec![
+        LispObject::String("This.".to_string()),
+        LispObject::Number(12.1),
+        LispObject::Cons(Box::new((
+            LispObject::Number(12.),
+            LispObject::Symbol("do".to_string()),
+        ))),
+    ]);
+    let bytes = obj.into_bytes();
+    let reassembled = LispObject::build(&mut bytes.into_iter());
+    assert_eq!(reassembled, obj);
 }
