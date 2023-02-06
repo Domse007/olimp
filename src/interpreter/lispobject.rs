@@ -1,10 +1,14 @@
-const NUMBER: u8 = 0;
-const STRING: u8 = 1;
-const SYMBOL: u8 = 2;
-const CONS: u8 = 3;
-const LIST: u8 = 4;
+use super::utils::{read_to_f64, read_to_u16};
+
+const NUMBER: TypeHint = 0;
+const STRING: TypeHint = 1;
+const SYMBOL: TypeHint = 2;
+const CONS: TypeHint = 3;
+const LIST: TypeHint = 4;
+const NIL: TypeHint = 5;
 
 type SizeIdent = u16;
+type TypeHint = u8;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum LispObject {
@@ -13,6 +17,7 @@ pub enum LispObject {
     Symbol(String),
     Cons(Box<(Self, Self)>),
     List(Vec<Self>),
+    Nil,
 }
 
 impl LispObject {
@@ -62,6 +67,34 @@ impl LispObject {
                 }
                 vec
             }
+            Self::Nil => vec![NIL],
+        }
+    }
+
+    pub fn build<T: Iterator<Item = u8>>(data: &mut T) -> LispObject {
+        let ident = data.next().unwrap();
+        match ident {
+            NUMBER => LispObject::Number(read_to_f64(data)),
+            STRING => {
+                let size: SizeIdent = read_to_u16(data);
+                let str_bytes = data.take(size as usize).collect::<Vec<u8>>();
+                LispObject::String(String::from_utf8(str_bytes).unwrap())
+            }
+            SYMBOL => {
+                let size: SizeIdent = read_to_u16(data);
+                let str_bytes = data.take(size as usize).collect::<Vec<u8>>();
+                LispObject::Symbol(String::from_utf8(str_bytes).unwrap())
+            }
+            CONS => LispObject::Cons(Box::new((LispObject::build(data), LispObject::build(data)))),
+            LIST => {
+                let size = read_to_u16(data);
+                let mut vec = Vec::new();
+                for _ in 0..size {
+                    vec.push(LispObject::build(data));
+                }
+                LispObject::List(vec)
+            }
+            num => panic!("{num} is not a valid identifier."),
         }
     }
 }

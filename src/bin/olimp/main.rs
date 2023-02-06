@@ -34,6 +34,10 @@ type Options = HashMap<&'static str, Box<dyn Fn(Args, Config) -> i32>>;
 fn build_options() -> Options {
     let mut hm: Options = HashMap::new();
     hm.insert("help", Box::new(help::help));
+    hm.insert("--help", Box::new(help::help));
+    hm.insert("-h", Box::new(help::help));
     hm.insert("version", Box::new(version::version));
+    hm.insert("--version", Box::new(version::version));
+    hm.insert("-v", Box::new(version::version));
     hm
 }
