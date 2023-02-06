@@ -1,1 +1,19 @@
 #+Title: Opinionated Lisp IMPlementation
+
+Olimp is a basic Lisp implementation that compiles into a custom byte
+format. The compiled program is simultaneously the compiler and the
+interpreter.
+
+I wanted to keep this implementation dependency free. Mostly because
+of curiosity how much can be achieved with the std library.
+
+* Building
+This project uses the standard cargo way of compiling.
+
+#+begin_src sh
+$ git clone https://www.github.com/domse007/olimp
+$ cargo build --release
+#+end_src
+
+After that the resulting binary can be found in the =target/release/=
+directory.
