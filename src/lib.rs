@@ -30,6 +30,7 @@ mod interpreter;
 
 pub use crate::builder::OlimpBuilder;
 pub use crate::compiler::compiler::Compiler;
+pub use crate::compiler::error::CompilerError;
 pub use crate::interpreter::runtime::Runtime;
 
 pub use crate::interpreter::builtins::math::include_math;

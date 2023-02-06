@@ -6,7 +6,6 @@ use crate::interpreter::runtime::{self, Runtime};
 pub struct OlimpBuilder {
     magic: [u8; 7],
     included_builtins: FnCollector,
-    exec_bytes: Option<Vec<u8>>,
 }
 
 impl OlimpBuilder {
@@ -14,7 +13,6 @@ impl OlimpBuilder {
         Self {
             magic: Default::default(),
             included_builtins: FnCollector::default(),
-            exec_bytes: None,
         }
     }
 
@@ -44,18 +42,10 @@ impl OlimpBuilder {
         self
     }
 
-    pub fn add_program(mut self, bytes: &[u8]) -> Self {
-        self.exec_bytes = Some(bytes.into());
-        self
-    }
-
-    pub fn build(self) -> (Compiler, Option<Runtime>) {
+    pub fn build(self) -> (Compiler, Runtime) {
         let (comp, run) = self.included_builtins.build();
         let compiler = Compiler::new(comp);
-        let runtime = match &self.exec_bytes {
-            Some(b) => Some(Runtime::new(&self.exec_bytes.unwrap(), run)),
-            None => None,
-        };
+        let runtime = Runtime::new(run);
         (compiler, runtime)
     }
 }
