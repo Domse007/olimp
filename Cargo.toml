@@ -1,0 +1,12 @@
+[package]
+name = "olimp"
+version = "0.0.1"
+edition = "2021"
+
+[profile.release]
+lto = true
+strip = "debuginfo"
+incremental = false
+codegen-units = 16
+rpath = false
+debug = false
