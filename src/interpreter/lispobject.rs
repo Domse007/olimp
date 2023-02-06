@@ -93,6 +93,7 @@ impl LispObject {
                 }
                 LispObject::List(vec)
             }
+            NIL => LispObject::Nil,
             num => panic!("{num} is not a valid identifier."),
         }
     }
@@ -146,4 +147,30 @@ fn test_list_conversion() {
     let bytes = obj.into_bytes();
     let reassembled = LispObject::build(&mut bytes.into_iter());
     assert_eq!(reassembled, obj);
+}
+
+#[test]
+fn test_nil_conversion() {
+    let obj = LispObject::Nil;
+    let bytes = obj.into_bytes();
+    let reassembled = LispObject::build(&mut bytes.into_iter());
+    assert_eq!(reassembled, obj);
+}
+
+#[test]
+fn test_multiple() {
+    let objs = vec![
+        LispObject::String("Hello World.".to_string()),
+        LispObject::Nil,
+        LispObject::Number(12.2),
+    ];
+    let mut bytes = objs.iter().map(|obj| obj.into_bytes()).flatten();
+
+    let mut reassembled = vec![];
+
+    for _ in 0..3 {
+        reassembled.push(LispObject::build(&mut bytes));
+    }
+
+    assert_eq!(reassembled, objs);
 }
